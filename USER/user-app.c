@@ -1,6 +1,6 @@
 /*
 **************************************************************************************************************
-*	@file	user-app.c
+*	@file		user-app.c
 *	@author Jason_531@163.com
 *	@version 
 *	@date    
@@ -15,7 +15,7 @@
 #include "gps.h"
 #include "led.h"
 
-#define VERSION					0x01
+#define VERSION					0x02
 
 volatile uint16_t	UpSeqCounter = 1; 
 

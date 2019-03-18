@@ -2,9 +2,10 @@
 
 版本说明：
 
-【8】：ZETA-V0.2
+【9】：ZETA-V0.2
 优化功能：
 【1】：增加zeta mac地址上报指令
+【2】git push http://192.168.1.126:3000/Jasons531/Zeta_Pro_Farm.git
 
 【8】：ZETA-V0.1(出货版本)
 优化功能：

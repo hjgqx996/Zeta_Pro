@@ -82,29 +82,31 @@ int8_t CheckBattery(void)
 
 /*
 *CheckRecharge：判断是否接入适配器/太阳能板
-*返回值：			  充电状态
+*返回值：		 充电状态
+* 220k/(220k+2m)*BAT = Battery
+* 3v采样，分压为222/22则最大可以测量30v
 */
-uint16_t CheckRecharge(void)
+uint8_t CheckRecharge(void)
 {
-	uint16_t adc[3] = {0};
-	uint16_t Battery = 1000;
-	uint8_t  State = 0;
+	uint16_t adc[2]  = {0};
+	uint8_t Battery = 10;
 	
 	adc[0] = AdcReadParameter(ADC_CHANNEL_0, 10);
-	float Rechargeing = VREFINT_CAL_VREF*(*VREFINT_CAL_ADDR)*adc[0]; 
+	uint32_t Rechargeing = VREFINT_CAL_VREF*(*VREFINT_CAL_ADDR)*adc[0]; 
 	
 	adc[1] = AdcReadParameter(ADC_CHANNEL_VREFINT, 10);
 	
-	float temp = adc[1] * VFULL;
+	uint32_t temp = adc[1] * VFULL;
 	
-	DEBUG_APP(2, "BAT = %d adc17 = %d , adc0 = %d %.2f\r\n", *VREFINT_CAL_ADDR,  adc[1], adc[0],temp);  ///100:510
+	DEBUG_APP(3, "BAT = %d adc17 = %d , adc0 = %d temp = %d Rechargeing = %d\r\n", *VREFINT_CAL_ADDR,  adc[1], adc[0],temp, Rechargeing);  ///100:510
 		
-	Battery *= (float)((Rechargeing/temp)*222/22);
+	Battery *= (((float)Rechargeing/(float)temp)*222/22); ///缩小100倍
 	
-	DEBUG_APP(2,"VBAT = %.2fmV",(float)Battery);
+	DEBUG_APP(3,"Recharge BAT = %dmV,",Battery*100);
 		
 	return Battery;
 }
+
 
 int8_t ReadBattery(void)
 {

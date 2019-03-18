@@ -224,25 +224,34 @@ ZetaState_t ZetaRecv(void)
 	if( HAL_GetTick(  )-ZetaRecviceBuf.Uart_time > 20 && UART_RX_LPUART1.Rx_State) 
 	{
 		UART_RX_LPUART1.Rx_State = false;
-		
+				
 		memcpy1(ZetaRecviceBuf.Buf,UART_RX_LPUART1.USART_RX_BUF,UART_RX_LPUART1.USART_RX_Len);
 		ZetaRecviceBuf.Len = UART_RX_LPUART1.USART_RX_Len;
 		
-		for(uint8_t i = 0; i < ZetaRecviceBuf.Len; i++)
-		{
-			printf("%02x ",UART_RX_LPUART1.USART_RX_BUF[i]);
-		}
-		DEBUG(2,"\r\n");
-
+//		for(uint8_t i = 0; i < ZetaRecviceBuf.Len; i++)
+//		{
+//			printf("%02x ",UART_RX_LPUART1.USART_RX_BUF[i]);
+//		}
+//		DEBUG(2,"\r\n");
 		
 		memset(UART_RX_LPUART1.USART_RX_BUF, 0, UART_RX_LPUART1.USART_RX_Len);
 		
 		UART_RX_LPUART1.USART_RX_Len = 0;
 		
-		DEBUG(2,"---ZetaRecviceBuf: ");
-		for(uint8_t i = 0; i < ZetaRecviceBuf.Len; i++)
-		printf("%02x ",ZetaRecviceBuf.Buf[i]);
-		DEBUG(2,"\r\n");
+		if(ZetaRecviceBuf.Buf[2] != 0x08 && ZetaRecviceBuf.Buf[3] != 0x10)
+		{
+			DEBUG(2,"---ZetaRecviceBuf: ");
+			for(uint8_t i = 0; i < ZetaRecviceBuf.Len; i++)
+			printf("%02x ",ZetaRecviceBuf.Buf[i]);
+			DEBUG(2,"\r\n");
+		}
+		else
+		{
+			DEBUG(2,"App User Zeta Id: ");
+			for(uint8_t i = 4; i < ZetaRecviceBuf.Len; i++)
+			DEBUG(2,"%02X",ZetaRecviceBuf.Buf[i]);
+			DEBUG(2,"\r\n");
+		}
 		
 		if(ZetaRecviceBuf.Len == 4) ///设置状态反馈
 		{
@@ -268,6 +277,9 @@ ZetaState_t ZetaRecv(void)
 		else if(ZetaRecviceBuf.Len >= 5 && ZetaRecviceBuf.Buf[0] == 0xff && ZetaRecviceBuf.Buf[1] == 0x00 )
 		{
 			ZetaRecviceBuf.States = Payload;
+			
+			memset(ZetaRecviceBuf.RevBuf, 0, ZetaRecviceBuf.Len);
+			memcpy1(ZetaRecviceBuf.RevBuf, &ZetaRecviceBuf.Buf[4],ZetaRecviceBuf.Len-4);
 		}
 		
 		////下行控制数据处理:FF 00 08 30 23 45 67 89：发送数据周期、唤醒MCU发送等 ff 00 len 30 data

@@ -198,7 +198,7 @@ void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
 	 // PWR_FLAG_WU indicates the Alarm has waken-up the MCU
 	if( __HAL_PWR_GET_FLAG( PWR_FLAG_WU ) != RESET )
 	{
-			__HAL_PWR_CLEAR_FLAG( PWR_FLAG_WU );
+		__HAL_PWR_CLEAR_FLAG( PWR_FLAG_WU );
 	}
 	
 	 // check the clk source and set to full speed if we are coming from sleep mode
@@ -206,9 +206,10 @@ void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
 			( __HAL_RCC_GET_SYSCLK_SOURCE( ) == RCC_SYSCLKSOURCE_STATUS_MSI ) )
 	{
 		BoardInitMcu( );
-		DEBUG(2,"wkup low-power now\r\n");
+		DEBUG_APP(2,"wkup low-power now");
 	}
-    /** enable irq */
+	
+	/** enable irq */
 	__enable_irq( );
 }
 

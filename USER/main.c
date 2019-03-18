@@ -23,7 +23,6 @@
 extern UART_HandleTypeDef 			UartHandle;
 extern RTC_HandleTypeDef 			RtcHandle;
 
-
 /*******************************************************************************************************************
   * @函数名称	 main
   * @函数说明   主函数 
@@ -41,7 +40,7 @@ int main(void)
 	
     BoardInitMcu(  );
 	
-	 DEBUG(2,"TIME : %s  DATE : %s\r\n",__TIME__, __DATE__); 
+	 UserGetBoardInformat(  );
 		
 	 UserReadFlash(  );
 	
@@ -49,8 +48,6 @@ int main(void)
 	 SensorTime = HAL_GetTick(  );
 	 UserCheckSensors(  );
 						 	 						
-	 UserCheckCmd(&UserZetaCheck[MAC]);
-
 	 UserCheckCmd(&UserZetaCheck[COUNTER]);
 	
 	 UserCheckCmd(&UserZetaCheck[RSSI]);
@@ -60,40 +57,49 @@ int main(void)
 	 while (1)
 	{	
 #if 1	
-		 
-		 ///休眠唤醒获取传感器数据同时记录时间，确保发送时间间隔一致
-		 if(User.Sleep)
-		 SensorTime = HAL_GetTick(  );		
+		 /*********电量过低进入休眠模式，每H开启监测，保护电池***********/
+		if(3 == CheckBattery(  ))
+		{		
+			SetRtcAlarm(3600);  ///7200
+			UserWakupWdg(  );
+			UserIntoLowPower(  );			
+		}
+		else
+		{
+			 ///休眠唤醒获取传感器数据同时记录时间，确保发送时间间隔一致		
+			 if(User.Sleep)
+			 SensorTime = HAL_GetTick(  );		
 
-		 UserSendSensor(  );
+			 UserSendSensor(  );
 
-		  ////上报GPS信息
-		 UserSendGps(  ); 
-		 
-		 ///休眠前校准RTC时钟
-		 RtcvRtcCalibrate(  );
-		 
-		 OverTime = HAL_GetTick(  ) - SensorTime;
-		 
-		 OverTime /= 1000;
-		 		 
-		 DEBUG_APP(2,"User.SleepTime = %d OverTime = %d\r\n",User.SleepTime,OverTime);
-		 		 
-		 if(OverTime>=User.SleepTime * 60)
-		 {
-				SleepTime = 60;
-		 }
-		 else		
-		 {
-				SleepTime = User.SleepTime * 60 - OverTime;
-		 }
+			  ////上报GPS信息
+			 UserSendGps(  ); 
+			 
+			 ///休眠前校准RTC时钟
+			 RtcvRtcCalibrate(  );
+			 
+			 OverTime = HAL_GetTick(  ) - SensorTime;
+			 
+			 OverTime /= 1000;
+					 
+			 DEBUG_APP(2,"User.SleepTime = %d OverTime = %d\r\n",User.SleepTime,OverTime);
+					 
+			 if(OverTime>=User.SleepTime * 60)
+			 {
+					SleepTime = 60;
+			 }
+			 else		
+			 {
+					SleepTime = User.SleepTime * 60 - OverTime;
+			 }
 
-		 User.Sleep = true;
-		 DEBUG_APP(2,"GetPation = %d\r\n",SetGpsAck.GetPation);
-		 SetRtcAlarm(SleepTime);///4S误差	  (User.SleepTime*60)   
-		 
-		 UserWakupWdg(  );
-		 UserIntoLowPower(  );
+			 User.Sleep = true;
+			 SetRtcAlarm(SleepTime);///4S误差	  (User.SleepTime*60)   
+			 
+			 UserWakupWdg(  );
+			 UserIntoLowPower(  );
+		}
+		
 #endif		
 	 } 
 }

@@ -15,7 +15,7 @@
 #include "gps.h"
 #include "led.h"
 
-#define VERSIOS					0x01
+#define VERSION					0x01
 
 volatile uint16_t	UpSeqCounter = 1; 
 
@@ -30,6 +30,24 @@ UserZeta_t UserZetaCheck[] = {
 User_t User = {0, 0, false, false, false};
 
 static uint8_t DeviceInfo[4] = {0};
+
+/*UserGetBoardInformat：	用户获取板子信息
+*参数：							无
+*返回值：   					无
+*/
+void UserGetBoardInformat(void)
+{
+	DEBUG(2,"App Build Time : %s  Date : %s\r\n",__TIME__, __DATE__); 
+	DEBUG(2,"App User Software Versions: %d\r\n",VERSION) 
+	DEBUG(2,"App User Hardware Versions: YC.SH.S019001.e1\r\n") 
+	UserGetAddID(  );
+	/************延时1S等待ADC稳定************/
+	HAL_Delay(1000);
+	DEBUG(2,"App User Battery: %d％\r\n",CheckBattery()) 
+	DEBUG(2,"App User Rechargeing: %.1fV\r\n", (float)CheckRecharge()/10);
+	
+	UserCheckCmd(&UserZetaCheck[MAC]);
+}
 
 /*UserCheckSensors：	用户查询传感器信息
 *参数：								无
@@ -104,21 +122,6 @@ void UserSend(Zeta_t *SendBuf)
 				DEBUG(2,"---Writing registered---\r\n");
 				i = 1;
 				LedSendFail(5);    ///发送失败闪烁6S;
-				
-//				if(ApplyCounter == 10)  ///1min超时操作进入休眠
-//				{
-//					ApplyCounter = 0;
-//					
-//					ZetaHandle.PowerOff(  );
-//					
-//					if(GPSEXIST == DeviceInfo[1])
-//					{
-//						SetGpsAck.ReStart = true;
-//					}
-//					
-//					SetRtcAlarm(60); 
-//					UserIntoLowPower(  );
-//				}
 			}
 			else
 			HAL_Delay(300);	
@@ -152,7 +155,7 @@ void UserSendSensor(void)
 	
 	ZetaSendBuf.Buf[3] = 0x02;
 	
-	ZetaSendBuf.Buf[4] = (VERSIOS << 4); ///|充电状态
+	ZetaSendBuf.Buf[4] = (VERSION << 4); ///|充电状态
 	
 	/********************设备ID*****************/
 	memcpy1(&ZetaSendBuf.Buf[5], &DeviceInfo[0], 4); 
@@ -239,7 +242,7 @@ void UserSendGps(void)
 			
 			ZetaSendBuf.Buf[3] = 0x02;
 			
-			ZetaSendBuf.Buf[4] = (VERSIOS << 4); ///|充电状态
+			ZetaSendBuf.Buf[4] = (VERSION << 4); ///|充电状态
 			
 			/********************设备ID*****************/
 			memcpy1(&ZetaSendBuf.Buf[5], &DeviceInfo[0], 4); 
@@ -296,7 +299,7 @@ void UserSendTest(void)
 	
 	ZetaSendBuf.Buf[3] = 0x02;
 	
-	ZetaSendBuf.Buf[4] = (VERSIOS << 4); ///|充电状态
+	ZetaSendBuf.Buf[4] = (VERSION << 4); ///|充电状态
 	
 	/********************设备ID*****************/
 	memcpy1(&ZetaSendBuf.Buf[5], &DeviceInfo[0], 4); 
@@ -353,7 +356,7 @@ void UserDownCommand(void)
 	
 	ZetaSendBuf.Buf[3] = 0x02;
 	
-	ZetaSendBuf.Buf[4] = (VERSIOS << 4); ///|充电状态
+	ZetaSendBuf.Buf[4] = (VERSION << 4); ///|充电状态
 
 	/********************设备ID*****************/
 	memcpy1(&ZetaSendBuf.Buf[5], &DeviceInfo[0], 4); 
@@ -400,7 +403,7 @@ void UserDownCommand(void)
 		
 		ZetaSendBuf.Buf[3] = 0x02;
 		
-		ZetaSendBuf.Buf[4] = (VERSIOS << 4); ///|充电状态
+		ZetaSendBuf.Buf[4] = (VERSION << 4); ///|充电状态
 
 		/********************设备ID*****************/
 		memcpy1(&ZetaSendBuf.Buf[5], &DeviceInfo[0], 4); 
@@ -496,9 +499,12 @@ void UserCheckCmd(UserZeta_t *UserZetaCheckCmd)
 	
 	for(uint8_t i = 0; i < 3; i++)
 	{	
-		for(uint8_t j = 0; j<4; j++)
-		DEBUG(2,"%02x ",ZetaSendBuf.Buf[j]);
-		DEBUG(2,"\r\n");
+		if(ZetaSendBuf.Buf[3] != 0x10)
+		{
+			for(uint8_t j = 0; j<4; j++)
+			DEBUG(2,"%02x ",ZetaSendBuf.Buf[j]);
+			DEBUG(2,"\r\n");
+		}
 		
 		ZetaHandle.Send(&ZetaSendBuf);
 				
@@ -741,7 +747,7 @@ void UserReadFlash(void)
 {	
 	 if(FlashRead32(SLEEP_ADDR)==0||FlashRead32(SLEEP_ADDR)==0xffffffff)
 	{
-		uint32_t time = 5;//默认5min
+		uint32_t time = 1;//默认5min
 		FlashWrite32(SLEEP_ADDR,&time,1);			
 	}
 	

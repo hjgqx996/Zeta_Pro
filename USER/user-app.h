@@ -65,6 +65,8 @@ extern User_t User;
 
 void UserCheckSensors(void);
 
+void UserGetBoardInformat(void);
+
 void UserSend(Zeta_t *SendBuf);
 
 void UserSendGps(void);

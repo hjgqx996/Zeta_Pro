@@ -51,7 +51,7 @@ typedef enum
 typedef enum u_Rstype
 {
 	RS485_NULL = 0,
-	RS485_SIGNAL = 1,
+	RS485_SINGLE = 1,
 	RS485_EXPAND_BOX = 2,
 	RS485_NONE,
 	

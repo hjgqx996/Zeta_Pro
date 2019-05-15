@@ -31,7 +31,7 @@ CheckRs485_t CheckRs485s[] = {
 	{0x13, 0x13,				0x0000, 		0x0002,  				6,					9, 		RS485_IDE_LEN+4,		200*1,		"" ,			"" ,		"Water-EC"},  ///水EC
 	{0x14, 0x14,				0x0000, 		0x0001,  				6,					7, 		RS485_IDE_LEN+2,		200*1,		"" ,			"" ,		 "Water-T"},  ///水温
 	{0x15, 0x15,				0x0000, 		0x0002,  				6,					7, 		RS485_IDE_LEN+2,		200*1,		"" ,			"" ,		"Water-K+"},	///水钾+
-	{0xFD, 0x18,				0x0000, 		0x0004,  				6,				 13, 		RS485_IDE_LEN+8,		1000*1,	  "" ,		  "" ,		 "Air-Ill"},	///空气温湿度、光照
+	{0xFD, 0x18,				0x0000, 		0x0004,  				6,				 13, 		   RS485_IDE_LEN+8,		1000*1,	  "" ,		  "" ,		 "Air-Ill"},	///空气温湿度、光照
 
 	/****************************   以下传感器不支持广播命令   ***************************/
 	{0x07, 0x07,				0x0000, 		0x0001,  				6,					7, 		RS485_IDE_LEN+2,		1000*1,		"" ,			"" ,		 "ST_Y/MW"},  ///叶面温度
@@ -43,7 +43,7 @@ CheckRs485_t CheckRs485s[] = {
 			/**************************   以下传感器：水产   *****************/
 	{0x05, 0x05,				0x0000, 		0x0001,  				6,					7, 		RS485_IDE_LEN+2,		1000*60,	"" ,			"" ,			 "WT_PH"},  ///水PH  1000*30
 	{0x11, 0x11,				0x0000, 		0x0002,  				6,					9, 		RS485_IDE_LEN+4,		1000*120,	"" ,			"" ,		     "OXY"},  ///水溶氧 1000*120
-	{0x18, 0x11,				0x0000, 		0x0004,  				6,					13, 	RS485_IDE_LEN+8,		1000*180,	"" ,		  "" ,		     "RDO"},  ///荧光DO
+	{0x18, 0x11,				0x0000, 		0x0004,  				6,					13, 	   RS485_IDE_LEN+8,		1000*180,	"" ,		  "" ,		     "RDO"},  ///荧光DO
 };
 
 SaveRs485_t  SaveRs485s[3];
@@ -86,7 +86,7 @@ void SensorsInit(void)
 /*
  *	GetRs485Type:		485接口类型
  *	参数：			  	主板Rs485接口ID
- *	返回值：				Rs485类型：RS485_NONE/RS485_EXPAND_BOX/RS485_SIGNAL
+ *	返回值：				Rs485类型：RS485_NONE/RS485_EXPAND_BOX/RS485_SINGLE
  */
 static Rstype_t GetRs485Type(int index)
 {	
@@ -102,7 +102,7 @@ static HAL_StatusTypeDef SensorGetData(int id)
 {	
 	HAL_StatusTypeDef status;
 	
-	if(Sensors.GetRs485Type(id) == RS485_SIGNAL)
+	if(Sensors.GetRs485Type(id) == RS485_SINGLE)
 	{
 		status = Sensors.MaBoxData( id );
 	}
@@ -122,7 +122,7 @@ static HAL_StatusTypeDef SensorGetData(int id)
 static void SensorHandle(void)
 {			
 	Rs485s.PowerOn(  );
-	Rs485s.GetData(NULL,NODEBUG);  ///过滤作用：防止12V电源开启不稳定
+//	Rs485s.GetData(NULL,NODEBUG);  ///过滤作用：防止12V电源开启不稳定
 
 	for(uint8_t id = 0; id < NBI_RS485_PIN_COUNT; id++)
 	{
@@ -197,7 +197,7 @@ static void SensorDataProces(void)
 	DEBUG_APP(2, "-----Start get data Counter : %d----",Sensors.Counter);
 	for(PortId = 0; PortId < NBI_RS485_PIN_COUNT; PortId++)
 	{
-		if(SaveRs485s[PortId].Type == RS485_SIGNAL && GetSensorCounter < Sensors.Counter)
+		if(SaveRs485s[PortId].Type == RS485_SINGLE && GetSensorCounter < Sensors.Counter)
 		{
 			Len += SaveRs485s[PortId].MainBox.SensorToLen;
 			
@@ -411,7 +411,7 @@ static HAL_StatusTypeDef SensorQueryPinStaus(void)
 	
 	RS485CmdPackage(NBI_RS485_SEARCH_CODE);///获取预存485命令缓存
 	
-	Rs485s.GetData(NULL,NODEBUG);  ///过滤作用：防止12V电源开启不稳定
+//	Rs485s.GetData(NULL,NODEBUG);  ///过滤作用：防止12V电源开启不稳定
 	
 	for(int id = 0; id < NBI_RS485_PIN_COUNT ; id++)
 	{		
@@ -438,7 +438,7 @@ static HAL_StatusTypeDef SensorQueryPinStaus(void)
 /*
  *	SensorQueryType:		广播查询主板485类型
  *	参数：			  			Rs485接口
- *	返回值：						Rs485类型：RS485_NONE/RS485_EXPAND_BOX/RS485_SIGNAL
+ *	返回值：						Rs485类型：RS485_NONE/RS485_EXPAND_BOX/RS485_SINGLE
  */
 static Rstype_t SensorQueryType(int PortId)
 {
@@ -471,7 +471,7 @@ static Rstype_t SensorQueryType(int PortId)
 	else if(len >5) ///非扩展盒地址应答
 	{				
 		//没有找到扩展盒但是单个口有了回复
-		DEBUG_APP(3,"siganal ok and has rpy addr = %x",repbuff[3]);		
+		DEBUG_APP(3,"single ok and has rpy addr = %x",repbuff[3]);		
 		int i = 0;
 
 		////判断接口对应接入485传感器地址，记录
@@ -479,7 +479,7 @@ static Rstype_t SensorQueryType(int PortId)
 		{
 			if(CheckRs485s[i].Addr == repbuff[3]) 
 			{					
-				SaveRs485s[PortId].Type = RS485_SIGNAL;
+				SaveRs485s[PortId].Type = RS485_SINGLE;
 				
 				SaveRs485s[PortId].MainBox.Index = id;  
 				SaveRs485s[PortId].MainBox.CheckIndex = i; ///记录查询下标
@@ -499,13 +499,13 @@ static Rstype_t SensorQueryType(int PortId)
 		}
 		else
 		{
-				SaveRs485s[PortId].Type = RS485_SIGNAL;
+				SaveRs485s[PortId].Type = RS485_SINGLE;
 		}
 	}
 	else
 	{
 		//没有找到扩展盒，单个口也没有回复，开始遍历所有的外部设备的数据
-		DEBUG_WARNING(3,"siganal ok and foreach");		
+		DEBUG_WARNING(3,"single ok and foreach");		
 		uint32_t startTime = HAL_GetTick(  );
 		uint8_t  CheckRs485Index = 0;
 		
@@ -535,7 +535,7 @@ static Rstype_t SensorQueryType(int PortId)
 				SaveRs485s[PortId].MainBox.CheckIndex = i; ///记录查询下标
 				SaveRs485s[PortId].MainBox.Identifier = CheckRs485s[i].Identifier; ///解码标识
 
-				SaveRs485s[PortId].Type = RS485_SIGNAL;				
+				SaveRs485s[PortId].Type = RS485_SINGLE;				
 				
 				///查询数据保存处理
 				SaveRs485s[PortId].MainBox.SensorToLen = CheckRs485s[i].SensorToLen; ///传感器总长度		
@@ -685,7 +685,7 @@ static HAL_StatusTypeDef SensorExpBoxAddr(int index)
 			
 			if(len >5) ///广播应答
 			{											
-				DEBUG_APP(3,"siganal ok and has rpy addr = 0x%02x",repbuff[3]);		
+				DEBUG_APP(3,"single ok and has rpy addr = 0x%02x",repbuff[3]);		
 				int i = 0;
 
 				////判断接口对应接入485传感器地址，记录

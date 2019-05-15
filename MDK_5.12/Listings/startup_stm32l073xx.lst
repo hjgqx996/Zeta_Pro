@@ -406,9 +406,9 @@ ARM Macro Assembler    Page 7
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M0+ --apcs=inter
 work --depend=.\objects\startup_stm32l073xx.d -o.\objects\startup_stm32l073xx.o
- -I.\RTE\_NBI_Zeta -ID:\mysaftware\mdk526\ARM\PACK\Keil\STM32L0xx_DFP\2.0.0\Dri
+ -I.\RTE\_NBI_Zeta -ID:\mysaftware\mdk526\ARM\PACK\Keil\STM32L0xx_DFP\2.0.1\Dri
 vers\CMSIS\Device\ST\STM32L0xx\Include -ID:\mysaftware\mdk526\ARM\CMSIS\Include
- -ID:\mysaftware\mdk526\ARM\PACK\Keil\STM32L0xx_DFP\2.0.0\Device\Include --pred
+ -ID:\mysaftware\mdk526\ARM\PACK\Keil\STM32L0xx_DFP\2.0.1\Device\Include --pred
 efine="__MICROLIB SETA 1" --predefine="__UVISION_VERSION SETA 526" --predefine=
 "STM32L073xx SETA 1" --list=.\listings\startup_stm32l073xx.lst ..\CMSIS\Device\
 ST\STM32L0xx\Source\Templates\arm\startup_stm32l073xx.s

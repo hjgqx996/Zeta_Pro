@@ -157,40 +157,43 @@ uint8_t Rs485GetData(uint8_t *data, uint8_t debuglevel)
  */
 uint8_t Rs485Cmd(uint8_t *sendData, uint8_t len, uint8_t debuglevel, uint32_t time_out)
 {	
-		uint8_t temp[20] = {0};
-    RS485_TO_TX();		 
-    Rs485s.Crc16(sendData,len);
-		
-  	HAL_Delay(time_out);
-    DEBUG(debuglevel,"---send : ");
-    for(int i = 0; i < len+2; i++)
-    DEBUG(debuglevel,"%02X ",sendData[i]);
-    DEBUG(debuglevel,"\r\n");
-    HAL_UART_Transmit(&huart5,sendData,len + 2,0xffff);		
+	uint8_t temp[20] = {0};
+
+	///发送数据前，过滤RS485
+	Rs485s.GetData(NULL, NODEBUG);
+	RS485_TO_TX();		 
+	Rs485s.Crc16(sendData,len);
+
+	HAL_Delay(time_out);
+	DEBUG(debuglevel,"---send : ");
+	for(int i = 0; i < len+2; i++)
+	DEBUG(debuglevel,"%02X ",sendData[i]);
+	DEBUG(debuglevel,"\r\n");
+	HAL_UART_Transmit(&huart5,sendData,len + 2,0xffff);		
+
+	RS485_TO_RX(  );
+
+	memset(Rs485s.Revbuff, 0, 20);
 	
-    RS485_TO_RX(  );
-	
-	  memset(Rs485s.Revbuff, 0, 20);
-	
-		if(sendData[0] == 0xFD)
-		{
-			HAL_Delay(200);
-		}
-		else
-    HAL_Delay(NBI_RS485_REV_TIME_OUT);
-								
-    uint8_t length = Rs485s.GetData(temp,debuglevel);
-		
-		memcpy1(Rs485s.Revbuff,temp,length);
+	if(sendData[0] == 0xFD)
+	{
+		HAL_Delay(200);
+	}
+	else
+	HAL_Delay(NBI_RS485_REV_TIME_OUT);
+							
+	uint8_t length = Rs485s.GetData(temp,debuglevel);
+
+	memcpy1(Rs485s.Revbuff,temp,length);
     
-    char crcH = Rs485s.Revbuff[length-1];
-    char crcL = Rs485s.Revbuff[length-2];
-    
-    Rs485s.Crc16(Rs485s.Revbuff,length-2);
-    if(crcH == Rs485s.Revbuff[length-1] && crcL == Rs485s.Revbuff[length-2])			
-        return length;
-    else
-        return 0;		
+	char crcH = Rs485s.Revbuff[length-1];
+	char crcL = Rs485s.Revbuff[length-2];
+
+	Rs485s.Crc16(Rs485s.Revbuff,length-2);
+	if(crcH == Rs485s.Revbuff[length-1] && crcL == Rs485s.Revbuff[length-2])			
+	  return length;
+	else
+	  return 0;		
 }
 
 /*

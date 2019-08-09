@@ -49,9 +49,7 @@ int main(void)
 	 UserCheckSensors(  );
 						 	 						
 	 UserCheckCmd(&UserZetaCheck[COUNTER]);
-	
 	 UserCheckCmd(&UserZetaCheck[RSSI]);
-
 	 UserSetHeart(0x00);
 
 	 while (1)

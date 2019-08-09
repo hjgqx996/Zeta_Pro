@@ -15,7 +15,9 @@
 #include "gps.h"
 #include "led.h"
 
-#define VERSION					0x01
+#define userappMAJOR_VERSION	0 ///项目整体发生全局变化时，主版本号加 1
+#define userappMINOR_VERSION	0 ///项目在原有基础添加部分功能+1
+#define userappDEBUG_VERSION	1 ///局部修改或 bug 修正时+1
 
 volatile uint16_t	UpSeqCounter = 1; 
 
@@ -38,8 +40,8 @@ static uint8_t DeviceInfo[4] = {0};
 void UserGetBoardInformat(void)
 {
 	DEBUG(2,"App Build Time : %s  Date : %s\r\n",__TIME__, __DATE__); 
-	DEBUG(2,"App User Software Versions: %d\r\n",VERSION) 
-	DEBUG(2,"App User Hardware Versions: YC.SH.S019001.e1\r\n") 
+	DEBUG(2,"App User Software Versions: V%d.%d.%d\r\n",userappMAJOR_VERSION,userappMINOR_VERSION,userappDEBUG_VERSION); 
+	DEBUG(2,"App User Hardware Versions: YC.SH.S019001.e1\r\n");
 	UserGetAddID(  );
 	/************延时1S等待ADC稳定************/
 	HAL_Delay(1000);
@@ -151,11 +153,9 @@ void UserSendSensor(void)
 	}
 	
 	ZetaSendBuf.Buf[0] = 0xff;
-	ZetaSendBuf.Buf[1] = 0x00;
-	
-	ZetaSendBuf.Buf[3] = 0x02;
-	
-	ZetaSendBuf.Buf[4] = (VERSION << 4); ///|充电状态
+	ZetaSendBuf.Buf[1] = 0x00;	
+	ZetaSendBuf.Buf[3] = 0x02;	
+	ZetaSendBuf.Buf[4] = (userappDEBUG_VERSION << 4); ///|充电状态
 	
 	/********************设备ID*****************/
 	memcpy1(&ZetaSendBuf.Buf[5], &DeviceInfo[0], 4); 
@@ -238,25 +238,17 @@ void UserSendGps(void)
 			SetGpsAck.Posfix = false;
 			
 			ZetaSendBuf.Buf[0] = 0xff;
-			ZetaSendBuf.Buf[1] = 0x00;
-			
-			ZetaSendBuf.Buf[3] = 0x02;
-			
-			ZetaSendBuf.Buf[4] = (VERSION << 4); ///|充电状态
+			ZetaSendBuf.Buf[1] = 0x00;			
+			ZetaSendBuf.Buf[3] = 0x02;		
+			ZetaSendBuf.Buf[4] = (userappDEBUG_VERSION << 4); ///|充电状态
 			
 			/********************设备ID*****************/
-			memcpy1(&ZetaSendBuf.Buf[5], &DeviceInfo[0], 4); 
-			
-			ZetaSendBuf.Buf[9] = 0x11; //帧数
-					
-			len += SetGpsAck.Len;
-			
-			DEBUG_APP(2,"len = %02X ",len);
-			
-			memcpy1(&ZetaSendBuf.Buf[10], &SetGpsAck.PationBuf[0], len); 
-			
+			memcpy1(&ZetaSendBuf.Buf[5], &DeviceInfo[0], 4); 			
+			ZetaSendBuf.Buf[9] = 0x11; //帧数					
+			len += SetGpsAck.Len;			
+			DEBUG_APP(2,"len = %02X ",len);			
+			memcpy1(&ZetaSendBuf.Buf[10], &SetGpsAck.PationBuf[0], len); 			
 			ZetaSendBuf.Buf[4] |= User.BatState;
-
 			memset(SetGpsAck.PationBuf, 0, 11);
 			
 			DEBUG(2,"ZetaSendBuf: ");
@@ -265,19 +257,14 @@ void UserSendGps(void)
 			DEBUG(2,"\r\n");
 			
 			ZetaSendBuf.Buf[10 + len++] = (UpSeqCounter&0xff00)<<8; ///Seq
-			ZetaSendBuf.Buf[10 + len++] = (UpSeqCounter&0xff);
-			
+			ZetaSendBuf.Buf[10 + len++] = (UpSeqCounter&0xff);		
 			ZetaSendBuf.Buf[10 + len] = ZetaHandle.CRC8(&ZetaSendBuf.Buf[10],len); ///CRC
-
 			len ++;
 				
 			ZetaSendBuf.Buf[2] = 0x0A + len; /// +sensor_len
-			ZetaSendBuf.Len = ZetaSendBuf.Buf[2];
-			
-			UserSend(&ZetaSendBuf);
-			
-			UpSeqCounter ++;
-			
+			ZetaSendBuf.Len = ZetaSendBuf.Buf[2];			
+			UserSend(&ZetaSendBuf);		
+			UpSeqCounter ++;			
 			LedSendSucess(8);   ///每包数据间隔4S
 			
 			/********************缓存清除*******************/
@@ -295,11 +282,9 @@ void UserSendTest(void)
 	uint8_t len= 3;
 		
 	ZetaSendBuf.Buf[0] = 0xff;
-	ZetaSendBuf.Buf[1] = 0x00;
-	
-	ZetaSendBuf.Buf[3] = 0x02;
-	
-	ZetaSendBuf.Buf[4] = (VERSION << 4); ///|充电状态
+	ZetaSendBuf.Buf[1] = 0x00;	
+	ZetaSendBuf.Buf[3] = 0x02;	
+	ZetaSendBuf.Buf[4] = (userappDEBUG_VERSION << 4); ///|充电状态
 	
 	/********************设备ID*****************/
 	memcpy1(&ZetaSendBuf.Buf[5], &DeviceInfo[0], 4); 
@@ -352,11 +337,9 @@ void UserDownCommand(void)
 	DEBUG_APP(2,"DoneState = %d",DoneState);
 		
 	ZetaSendBuf.Buf[0] = 0xff;
-	ZetaSendBuf.Buf[1] = 0x00;
-	
-	ZetaSendBuf.Buf[3] = 0x02;
-	
-	ZetaSendBuf.Buf[4] = (VERSION << 4); ///|充电状态
+	ZetaSendBuf.Buf[1] = 0x00;	
+	ZetaSendBuf.Buf[3] = 0x02;	
+	ZetaSendBuf.Buf[4] = (userappDEBUG_VERSION << 4); ///|充电状态
 
 	/********************设备ID*****************/
 	memcpy1(&ZetaSendBuf.Buf[5], &DeviceInfo[0], 4); 
@@ -369,11 +352,9 @@ void UserDownCommand(void)
 	{
 		case 0x01:
 		ZetaSendBuf.Buf[10 + len++] = ACKCOM;
-		ZetaSendBuf.Buf[10 + len++] = 0x01;
-		
+		ZetaSendBuf.Buf[10 + len++] = 0x01;		
 		ZetaSendBuf.Buf[10 + len++] = (UpSeqCounter&0xff00)<<8; ///Seq
 		ZetaSendBuf.Buf[10 + len++] = (UpSeqCounter&0xff);
-
 		ZetaSendBuf.Buf[10 + len] = ZetaHandle.CRC8(&ZetaSendBuf.Buf[10],len); ///CRC
 			
 		len++;
@@ -399,38 +380,27 @@ void UserDownCommand(void)
 		UserCheckCmd(&UserZetaCheck[MAC]);
 
 		ZetaSendBuf.Buf[0] = 0xff;
-		ZetaSendBuf.Buf[1] = 0x00;
-		
-		ZetaSendBuf.Buf[3] = 0x02;
-		
-		ZetaSendBuf.Buf[4] = (VERSION << 4); ///|充电状态
+		ZetaSendBuf.Buf[1] = 0x00;		
+		ZetaSendBuf.Buf[3] = 0x02;		
+		ZetaSendBuf.Buf[4] = (userappDEBUG_VERSION << 4); ///|充电状态
 
 		/********************设备ID*****************/
-		memcpy1(&ZetaSendBuf.Buf[5], &DeviceInfo[0], 4); 
-		
-		ZetaSendBuf.Buf[9] = 0x11;
-				
+		memcpy1(&ZetaSendBuf.Buf[5], &DeviceInfo[0], 4); 	
+		ZetaSendBuf.Buf[9] = 0x11;			
 		ZetaSendBuf.Buf[4] |= User.BatState;
 		ZetaSendBuf.Buf[10 + len++] = ACKMAC;
 					
-		memcpy1(&ZetaSendBuf.Buf[10 + len], ZetaRecviceBuf.RevBuf, 4);
-				
-		len += 4;
-		
+		memcpy1(&ZetaSendBuf.Buf[10 + len], ZetaRecviceBuf.RevBuf, 4);			
+		len += 4;		
 		ZetaSendBuf.Buf[10 + len++] = (UpSeqCounter&0xff00)<<8; ///Seq
 		ZetaSendBuf.Buf[10 + len++] = (UpSeqCounter&0xff);
-
-		ZetaSendBuf.Buf[10 + len] = ZetaHandle.CRC8(&ZetaSendBuf.Buf[10],len); ///CRC
-		
+		ZetaSendBuf.Buf[10 + len] = ZetaHandle.CRC8(&ZetaSendBuf.Buf[10],len); ///CRC	
 		len++;	
 		
 		ZetaSendBuf.Len = 0x0A+len;
-		ZetaSendBuf.Buf[2] = 0x0A+len;
-				
-		UserSend(&ZetaSendBuf);
-		
-		LedSendSucess(8);   ///每包数据间隔4S
-				
+		ZetaSendBuf.Buf[2] = 0x0A+len;				
+		UserSend(&ZetaSendBuf);		
+		LedSendSucess(8);   ///每包数据间隔4S				
 		UpSeqCounter ++;
 			
 		break;

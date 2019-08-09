@@ -76,7 +76,7 @@ int8_t CheckBattery(void)
 	if(Battery >= 100)
 		Battery = 100;
 	else if(Battery <= 5)
-		Battery = 3;
+		Battery = 0;
 	return Battery;
 }
 

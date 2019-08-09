@@ -58,7 +58,7 @@ int main(void)
 	{	
 #if 1	
 		 /*********电量过低进入休眠模式，每H开启监测，保护电池***********/
-		if(3 == CheckBattery(  ))
+		if(0 == CheckBattery(  ))
 		{		
 			SetRtcAlarm(3600);  ///7200
 			UserWakupWdg(  );

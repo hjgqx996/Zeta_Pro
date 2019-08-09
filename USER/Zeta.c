@@ -130,7 +130,7 @@ uint8_t ZetaDownCommand(uint8_t *RevBuf)
 			if( 0x00 == ZetaHandle.CRC8( RevBuf,4 ) )
 			{
 				uint32_t data = 0;
-				data |= RevBuf[1] << 4;
+				data |= RevBuf[1] << 8;
 				data |= RevBuf[2];
 								
 				////data write in flash			

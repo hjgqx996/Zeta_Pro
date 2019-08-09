@@ -26,12 +26,13 @@ CheckRs485_t CheckRs485s[] = {
 	{0x0C, 0x03,				0x0000, 		0x0001,  				6,					7, 		RS485_IDE_LEN+2,		500*1,		"" ,			"" ,		   "ST-TW"},  ///土壤温度
 	{0x0D, 0x0D,				0x0000, 		0x0001,  				6,					7, 		RS485_IDE_LEN+2,		1000*1,		"" ,			"" ,		   "ST-EC"},  ///EC
 	{0x0E, 0x0E,				0x0000, 		0x0001,  				6,					7, 		RS485_IDE_LEN+2,		1000*10,	"" ,			"" ,		  "ST_CO2"},	///CO2		
-//	{0x0F, 0x24,				0x0000, 		0x0001,  				6,					7, 		RS485_IDE_LEN+2,		1000*1,		"" ,			"" ,		"ST_AP"		},///气象站：大气压				
 	{0x12, 0x12,				0x0000, 		0x0001,  				6,					7, 		RS485_IDE_LEN+2,		200*1,		"" ,			"" ,		   "andan"},  ///氨氮
 	{0x13, 0x13,				0x0000, 		0x0002,  				6,					9, 		RS485_IDE_LEN+4,		200*1,		"" ,			"" ,		"Water-EC"},  ///水EC
 	{0x14, 0x14,				0x0000, 		0x0001,  				6,					7, 		RS485_IDE_LEN+2,		200*1,		"" ,			"" ,		 "Water-T"},  ///水温
 	{0x15, 0x15,				0x0000, 		0x0002,  				6,					7, 		RS485_IDE_LEN+2,		200*1,		"" ,			"" ,		"Water-K+"},	///水钾+
-	{0xFD, 0x18,				0x0000, 		0x0004,  				6,				 13, 		   RS485_IDE_LEN+8,		1000*1,	  "" ,		  "" ,		 "Air-Ill"},	///空气温湿度、光照
+	{0xF8, 0x29,				0x0000, 		0x0002,  				6,					9, 		RS485_IDE_LEN+4,		1000*5,		"" ,			"" ,		"Soil-EC"},    ///土壤EC 
+	{0xF9, 0x2A,				0x0000, 		0x0002,  				6,					11, 	RS485_IDE_LEN+4,		1000*5,		"" ,			"" ,		"Soil-Tech"},  ///土壤温湿度
+	{0xFD, 0x18,				0x0000, 		0x0004,  				6,				   13, 		RS485_IDE_LEN+8,		1000*1,	  "" ,		  "" ,		 "Air-Ill"},	///空气温湿度、光照
 
 	/****************************   以下传感器不支持广播命令   ***************************/
 	{0x07, 0x07,				0x0000, 		0x0001,  				6,					7, 		RS485_IDE_LEN+2,		1000*1,		"" ,			"" ,		 "ST_Y/MW"},  ///叶面温度
@@ -47,17 +48,13 @@ CheckRs485_t CheckRs485s[] = {
 };
 
 SaveRs485_t  SaveRs485s[3];
-
-SendBuf_t		 SendBufs[10] = {{{0}, {0}, 0}};
-
+SendBuf_t	 SendBufs[10] = {{{0}, {0}, 0}};
 Sensor_t     Sensors;
 	
-
 volatile 	uint8_t SendBufsCounter = 0; ///记录数据缓存区数组个数
 
 uint8_t OpenExpendBoxbuff[10] = {0x00,0x05,0x00,0x01,0x00,0x00,0x00};
 uint8_t ExpendBoxbuff[9] = {0xFE,0x03,0x04,0x00,0x00,0x00,0x00,0x00,0x00};
-
 
 /*
  *	SensorsInit:		传感器初始化
@@ -122,8 +119,6 @@ static HAL_StatusTypeDef SensorGetData(int id)
 static void SensorHandle(void)
 {			
 	Rs485s.PowerOn(  );
-//	Rs485s.GetData(NULL,NODEBUG);  ///过滤作用：防止12V电源开启不稳定
-
 	for(uint8_t id = 0; id < NBI_RS485_PIN_COUNT; id++)
 	{
 		if(Sensors.GetRs485Type( id ) != RS485_NONE)
@@ -139,11 +134,8 @@ static void SensorHandle(void)
 		}
 	}
 	Rs485s.ClosePin(  );	
-	
-	Rs485s.PowerOff(  );
-	
-	SendBufsCounter = 0;
-	
+	Rs485s.PowerOff(  );	
+	SendBufsCounter = 0;	
 	Sensors.DataProces(  );
 }
 
@@ -155,7 +147,6 @@ static void SensorHandle(void)
 static void SensorCheckHandle(void)
 {
 	SendBufsCounter = 0;
-	
 	Sensors.DataProces(  );
 }
 
@@ -493,13 +484,13 @@ static Rstype_t SensorQueryType(int PortId)
 		}
 		if(i == ARRAY(CheckRs485s))
 		{
-				//没有找到
-				SaveRs485s[PortId].Type = RS485_NONE;				
-				DEBUG_ERROR(2,"address = %d not in array",repbuff[3]);		
+			//没有找到
+			SaveRs485s[PortId].Type = RS485_NONE;				
+			DEBUG_ERROR(2,"address = %d not in array",repbuff[3]);		
 		}
 		else
 		{
-				SaveRs485s[PortId].Type = RS485_SINGLE;
+			SaveRs485s[PortId].Type = RS485_SINGLE;
 		}
 	}
 	else
@@ -516,8 +507,8 @@ static Rstype_t SensorQueryType(int PortId)
 		}
 		else
 		CheckRs485Index = ARRAY(CheckRs485s);
-
-		for(int i = 12 ; i <  CheckRs485Index; i ++) ///只查询叶面传感器 
+		DEBUG_WARNING(2, "CheckRs485Index = %d",CheckRs485Index);
+		for(int i = 14 ; i <  CheckRs485Index; i ++) ///只查询叶面传感器 
 		{			
 			len = Rs485s.Cmd(CheckRs485s[i].SendBuff, CheckRs485s[i].SendDataLen, NODEBUG, CheckRs485s[i].TimeOut);
 			while(HAL_GetTick() - startTime < CheckRs485s[i].TimeOut && len != CheckRs485s[i].RevDataLen)
@@ -714,8 +705,8 @@ static HAL_StatusTypeDef SensorExpBoxAddr(int index)
 			else
 			{
 				//广播信息没有返回，认为这个传感器不接受FE查询
-        //遍历
-        DEBUG_WARNING(2,"port=%d sensor don`t return FE statr foreach CheckRs485s = %d",ExpIndex,ARRAY(CheckRs485s));			
+				//遍历
+				DEBUG_WARNING(2,"port=%d sensor don`t return FE statr foreach CheckRs485s = %d",ExpIndex,ARRAY(CheckRs485s));			
 				
 				uint32_t startTime = HAL_GetTick();
 				int i = 0;
@@ -730,7 +721,7 @@ static HAL_StatusTypeDef SensorExpBoxAddr(int index)
 				else
 				CheckRs485Index = ARRAY(CheckRs485s);
 				  
-				for(i = 12; i < CheckRs485Index; i ++) ///只查询叶面传感器  4   7
+				for(i = 14; i < CheckRs485Index; i ++) ///只查询叶面传感器  4   7
 				{
 					len = Rs485s.Cmd(CheckRs485s[i].SendBuff,CheckRs485s[i].SendDataLen, NODEBUG, CheckRs485s[i].TimeOut);
 				

@@ -30,8 +30,6 @@ CheckRs485_t CheckRs485s[] = {
 	{0x13, 0x13,				0x0000, 		0x0002,  				6,					9, 		RS485_IDE_LEN+4,		200*1,		"" ,			"" ,		"Water-EC"},  ///水EC
 	{0x14, 0x14,				0x0000, 		0x0001,  				6,					7, 		RS485_IDE_LEN+2,		200*1,		"" ,			"" ,		 "Water-T"},  ///水温
 	{0x15, 0x15,				0x0000, 		0x0002,  				6,					7, 		RS485_IDE_LEN+2,		200*1,		"" ,			"" ,		"Water-K+"},	///水钾+
-	{0xF8, 0x29,				0x0000, 		0x0002,  				6,					9, 		RS485_IDE_LEN+4,		1000*5,		"" ,			"" ,		"Soil-EC"},    ///土壤EC 
-	{0xF9, 0x2A,				0x0000, 		0x0002,  				6,					11, 	RS485_IDE_LEN+4,		1000*5,		"" ,			"" ,		"Soil-Tech"},  ///土壤温湿度
 	{0xFD, 0x18,				0x0000, 		0x0004,  				6,				   13, 		RS485_IDE_LEN+8,		1000*1,	  "" ,		  "" ,		 "Air-Ill"},	///空气温湿度、光照
 
 	/****************************   以下传感器不支持广播命令   ***************************/
@@ -508,7 +506,7 @@ static Rstype_t SensorQueryType(int PortId)
 		else
 		CheckRs485Index = ARRAY(CheckRs485s);
 		DEBUG_WARNING(2, "CheckRs485Index = %d",CheckRs485Index);
-		for(int i = 14 ; i <  CheckRs485Index; i ++) ///只查询叶面传感器 
+		for(int i = 12 ; i <  CheckRs485Index; i ++) ///只查询叶面传感器 
 		{			
 			len = Rs485s.Cmd(CheckRs485s[i].SendBuff, CheckRs485s[i].SendDataLen, NODEBUG, CheckRs485s[i].TimeOut);
 			while(HAL_GetTick() - startTime < CheckRs485s[i].TimeOut && len != CheckRs485s[i].RevDataLen)
@@ -721,7 +719,7 @@ static HAL_StatusTypeDef SensorExpBoxAddr(int index)
 				else
 				CheckRs485Index = ARRAY(CheckRs485s);
 				  
-				for(i = 14; i < CheckRs485Index; i ++) ///只查询叶面传感器  4   7
+				for(i = 12; i < CheckRs485Index; i ++) ///只查询叶面传感器  4   7
 				{
 					len = Rs485s.Cmd(CheckRs485s[i].SendBuff,CheckRs485s[i].SendDataLen, NODEBUG, CheckRs485s[i].TimeOut);
 				

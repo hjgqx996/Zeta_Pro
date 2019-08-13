@@ -1062,7 +1062,6 @@ HAL_StatusTypeDef HAL_UART_Receive_DMA(UART_HandleTypeDef *huart, uint8_t *pData
 
     /* Set the DMA abort callback */
     huart->hdmarx->XferAbortCallback = NULL;
-
     /* Enable the DMA channel */
     HAL_DMA_Start_IT(huart->hdmarx, (uint32_t)&huart->Instance->RDR, (uint32_t)huart->pRxBuffPtr, Size);
 

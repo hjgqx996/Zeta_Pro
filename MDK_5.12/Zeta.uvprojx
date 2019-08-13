@@ -49,7 +49,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\Objects\</OutputDirectory>
-          <OutputName>Zeta_Farm_V003</OutputName>
+          <OutputName>Zeta_Farm_V005</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -2981,11 +2981,6 @@
               <FileName>gps.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HAL\sensor\src\gps.c</FilePath>
-            </File>
-            <File>
-              <FileName>FIFO_Uart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HAL\sensor\src\FIFO_Uart.c</FilePath>
             </File>
           </Files>
         </Group>

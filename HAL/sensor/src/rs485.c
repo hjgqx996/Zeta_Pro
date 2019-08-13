@@ -30,9 +30,7 @@ rs485_t Rs485s;
  */
 void Rs485Init(void)
 {
-	MX_USART5_UART_Init(  );
-	InitUartFifo(  );
-	
+	MX_USART5_UART_Init(  );	
 	Rs485s.PinInit 		= Rs485PinInit;
 	Rs485s.OpenPin 		= Rs485OpenPin;
 	Rs485s.ClosePin 	= Rs485ClsoePin;
@@ -131,17 +129,18 @@ void _12VPowerOff(void)
  */
 uint8_t Rs485GetData(uint8_t *data, uint8_t debuglevel)
 {	
-	uint8_t ch = 0;
 	uint8_t length = 0;
-	    
-	DEBUG(debuglevel,"%s,----get data----",__FILE__);
 
-	while(FIFO_UartReadByte(&usart_rs485,&ch) == HAL_OK)	
+	DEBUG(debuglevel,"%s,----get data----",__FILE__);
+	memcpy(data, UART_RX_DATA5.USART_RX_BUF,UART_RX_DATA5.USART_RX_Len);
+	length = UART_RX_DATA5.USART_RX_Len;
+	memset(UART_RX_DATA5.USART_RX_BUF,0, UART_RX_DATA5.USART_RX_Len);
+	UART_RX_DATA5.USART_RX_Len = 0;
+	for(uint8_t i = 0; i < length; ++i)
 	{			
-		data[length] = ch;		
-		DEBUG(debuglevel,"%02X ",data[length]);	
-	  length++;
+		DEBUG(debuglevel,"%02X ",data[i]);	
 	}
+	HAL_UART_AbortReceive_IT(&huart5); ///发送前清除DMA，防止接收数据超时
 	DEBUG(debuglevel,"\r\n");
 	return length;
 }
@@ -159,8 +158,6 @@ uint8_t Rs485Cmd(uint8_t *sendData, uint8_t len, uint8_t debuglevel, uint32_t ti
 {	
 	uint8_t temp[20] = {0};
 
-	///发送数据前，过滤RS485
-	Rs485s.GetData(NULL, NODEBUG);
 	RS485_TO_TX();		 
 	Rs485s.Crc16(sendData,len);
 
@@ -172,7 +169,10 @@ uint8_t Rs485Cmd(uint8_t *sendData, uint8_t len, uint8_t debuglevel, uint32_t ti
 	HAL_UART_Transmit(&huart5,sendData,len + 2,0xffff);		
 
 	RS485_TO_RX(  );
-
+	huart5.RxState = HAL_UART_STATE_READY;
+    len = huart5.Instance->RDR; ///必须读取缓存数据才能清除，否则会导致数据帧开头接收到多个数据
+	HAL_UART_Receive_DMA(&huart5, UART_RX_DATA5.USART_RX_BUF,USART_REC_LEN);  
+	
 	memset(Rs485s.Revbuff, 0, 20);
 	
 	if(sendData[0] == 0xFD)
@@ -183,7 +183,6 @@ uint8_t Rs485Cmd(uint8_t *sendData, uint8_t len, uint8_t debuglevel, uint32_t ti
 	HAL_Delay(NBI_RS485_REV_TIME_OUT);
 							
 	uint8_t length = Rs485s.GetData(temp,debuglevel);
-
 	memcpy1(Rs485s.Revbuff,temp,length);
     
 	char crcH = Rs485s.Revbuff[length-1];

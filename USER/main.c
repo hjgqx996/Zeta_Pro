@@ -38,20 +38,16 @@ int main(void)
 	 uint32_t OverTime = 0;
 	 uint32_t SleepTime = 0;
 	
-     BoardInitMcu(  );
-	
-	 UserGetBoardInformat(  );
-		
+     BoardInitMcu(  );	
+	 UserGetBoardInformat(  );	
 	 UserReadFlash(  );
 	
 	///获取传感器数据同时记录时间，确保发送时间间隔一致
 	 SensorTime = HAL_GetTick(  );
 	 UserCheckSensors(  );
 						 	 						
-	 UserCheckCmd(&UserZetaCheck[COUNTER]);
-	
+	 UserCheckCmd(&UserZetaCheck[COUNTER]);	
 	 UserCheckCmd(&UserZetaCheck[RSSI]);
-
 	 UserSetHeart(0x00);
 
 	 while (1)

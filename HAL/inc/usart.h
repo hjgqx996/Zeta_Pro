@@ -56,8 +56,11 @@ extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart5;	 
 extern UART_HandleTypeDef hlpuart1;
+extern DMA_HandleTypeDef hdma_usart5_rx;
 
 /* USER CODE BEGIN Private defines */
+
+#define __HAL_DMA_SET_COUNTER(__HANDLE__, __COUNTER__) ((__HANDLE__)->Instance->CNDTR = (uint16_t)(__COUNTER__))/* USER CODE END Includes */
 
 /* USER CODE END Private defines */
 
@@ -65,27 +68,18 @@ extern UART_HandleTypeDef hlpuart1;
 
 #define USART_REC_LEN  			516  	//定义最大接收字节数 516
 
-typedef struct{
-	
+typedef struct{	
 	uint32_t rxtime;
-	
 	uint8_t USART_RX_BUF[USART_REC_LEN];     //接收缓冲,最大USART_REC_LEN个字节.
-	//接收状态
-	//bit15，	接收完成标志
-	//bit14，	接收到0x0d
-	//bit13~0，	接收到的有效字节数目
 	uint16_t USART_RX_Len;       //接收数据长度
-
-	uint8_t aRxBuffer[1];//HAL库使用的串口接收缓冲
-	
-	bool USART_TX_STATE;
-	
-	bool Rx_State;
-	
+	uint8_t aRxBuffer[1];//HAL库使用的串口接收缓冲	
+	bool USART_TX_STATE;	
+	bool Rx_State;	
 }UART_RX;
 
 extern UART_RX UART_RX_DATA1;
 extern UART_RX UART_RX_DATA2;
+extern UART_RX UART_RX_DATA5;
 extern UART_RX UART_RX_LPUART1;
 	 
 extern UART_FIFO_Typedef_t usart_rs485;

@@ -87,7 +87,7 @@ void NMI_Handler(void)
   */
 void HardFault_Handler(void)
 {
-   DEBUG(2,"%s\r\n",__func__);
+   DEBUG_APP(2,"%s\r\n",__func__);
   /* Go to infinite loop when Hard Fault exception occurs */
   while (1)
   {
@@ -214,6 +214,20 @@ void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
 }
 
 /**
+* @brief This function handles DMA1 channel 2 and channel 3 interrupts.
+*/
+void DMA1_Channel2_3_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Channel2_3_IRQn 0 */
+	
+  /* USER CODE END DMA1_Channel2_3_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart5_rx);
+  /* USER CODE BEGIN DMA1_Channel2_3_IRQn 1 */
+ 
+  /* USER CODE END DMA1_Channel2_3_IRQn 1 */
+}
+
+/**
 * @brief This function handles USART4 and USART5 interrupt.
 */
 void USART4_5_IRQHandler(void)
@@ -221,11 +235,27 @@ void USART4_5_IRQHandler(void)
   /* USER CODE BEGIN USART4_5_IRQn 0 */
 
   /* USER CODE END USART4_5_IRQn 0 */
-//   HAL_UART_IRQHandler(&huart5);
+  HAL_UART_IRQHandler(&huart5);
   /* USER CODE BEGIN USART4_5_IRQn 1 */
-		
-		FIFO_UartIRQ(&usart_rs485);
-	
+  uint8_t ucTmp1,ucTmp2;
+
+  ucTmp1 = __HAL_UART_GET_FLAG(&huart5, UART_FLAG_IDLE);   
+  ucTmp2 = __HAL_UART_GET_IT_SOURCE(&huart5, UART_IT_IDLE);
+  if((ucTmp1 != RESET) && (ucTmp2 != RESET))
+  { 
+	__HAL_UART_CLEAR_IDLEFLAG(&huart5);
+	HAL_UART_AbortReceive_IT(&huart5);
+	if(USART_REC_LEN != hdma_usart5_rx.Instance->CNDTR)
+	{
+		UART_RX_DATA5.USART_RX_Len = (USART_REC_LEN)-(hdma_usart5_rx.Instance->CNDTR); 
+	}	
+	else
+	{
+		memset(UART_RX_DATA5.USART_RX_BUF, 0, UART_RX_DATA5.USART_RX_Len);
+		UART_RX_DATA5.USART_RX_Len = 0;
+	}
+	__HAL_DMA_SET_COUNTER(&hdma_usart5_rx,USART_REC_LEN);
+  }
   /* USER CODE END USART4_5_IRQn 1 */
 }
 

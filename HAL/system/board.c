@@ -50,7 +50,6 @@ void BoardInitMcu( void )
 							
 	/****************ADC初始化*******************/
 	MX_ADC_Init(  );
-	
 	SPI1_Init(  );
 	
 	/*****************电源管理********************/
@@ -60,14 +59,10 @@ void BoardInitMcu( void )
 	HAL_NVIC_SetPriority(RTC_IRQn, 3, 0);
 	HAL_NVIC_EnableIRQ(RTC_IRQn);
 	
-	LedInit(  );
-	
-	SpiFlashInit(  );
-					
-	SensorsInit(  );
-	
-	ZetaHandle.Init(  );
-	
+	LedInit(  );	
+	SpiFlashInit(  );					
+	SensorsInit(  );	
+	ZetaHandle.Init(  );	
 	ZetaHandle.PowerOn(  );
 }
 

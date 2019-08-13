@@ -32,7 +32,7 @@ PUTCHAR_PROTOTYPE
   /* Place your implementation of fputc here */
   /* e.g. write a character to the USART */
   HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0xFFFF);  ///不需要库原因：从速度考虑直接使用寄存器更好
-	return 1;
+  return ch;
 }
 
 UART_HandleTypeDef huart1;
@@ -40,20 +40,12 @@ UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart5;
 UART_HandleTypeDef hlpuart1;
 
-UART_FIFO_Typedef_t usart_rs485;
-
 UART_RX UART_RX_DATA1 = {0, {0}, 0, {0}, false, false};
 UART_RX UART_RX_DATA2 = {0, {0}, 0, {0}, false, false};
+UART_RX UART_RX_DATA5 = {0, {0}, 0, {0}, false, false};
 UART_RX UART_RX_LPUART1 = {0, {0}, 0, {0}, false, false};
 
-uint8_t rx_rs485_buff[100] = {0};
-uint8_t tx_rs485_buff[100] = {0};
-
-void InitUartFifo(void)
-{
-	FIFO_UartVarInit(&usart_rs485,&huart5,tx_rs485_buff,rx_rs485_buff,100,100,NULL,NULL,NULL);
-	FIFO_UartEnableRxIT(&usart_rs485);
-}
+DMA_HandleTypeDef hdma_usart5_rx;
 
 /* USART1 init function */
 
@@ -97,7 +89,7 @@ void MX_LPUART1_UART_Init(void)
   }
 	
 	HAL_NVIC_SetPriority(AES_RNG_LPUART1_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(AES_RNG_LPUART1_IRQn);
+    HAL_NVIC_EnableIRQ(AES_RNG_LPUART1_IRQn);
 	HAL_UART_Receive_IT(&hlpuart1,UART_RX_LPUART1.aRxBuffer, RXBUFFERSIZE);
 }
 
@@ -128,6 +120,10 @@ void MX_USART2_UART_Init(void)
 
 void MX_USART5_UART_Init(void)
 {
+  __HAL_RCC_DMA1_CLK_ENABLE();
+  HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, 3, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
+	
   huart5.Instance = USART5;
   huart5.Init.BaudRate = 9600;
   huart5.Init.WordLength = UART_WORDLENGTH_8B;
@@ -142,8 +138,12 @@ void MX_USART5_UART_Init(void)
   {
     Error_Handler();
   }
-	HAL_NVIC_SetPriority(USART4_5_IRQn, 4, 0);
+ 
+  HAL_NVIC_SetPriority(USART4_5_IRQn, 3, 0);
   HAL_NVIC_EnableIRQ(USART4_5_IRQn);
+
+  HAL_UART_Receive_DMA(&huart5, UART_RX_DATA5.USART_RX_BUF,USART_REC_LEN); 
+  __HAL_UART_ENABLE_IT(&huart5,UART_IT_IDLE);
 }
 
 void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
@@ -237,11 +237,25 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF6_USART4;
+    GPIO_InitStruct.Alternate = GPIO_AF6_USART5;
     HAL_GPIO_Init(USART5_IO, &GPIO_InitStruct);
 
   /* USER CODE BEGIN USART4_MspInit 1 */
+	hdma_usart5_rx.Instance = DMA1_Channel2;
+    hdma_usart5_rx.Init.Request = DMA_REQUEST_13;
+    hdma_usart5_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_usart5_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_usart5_rx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_usart5_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_usart5_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_usart5_rx.Init.Mode = DMA_NORMAL;
+    hdma_usart5_rx.Init.Priority = DMA_PRIORITY_MEDIUM;
+    if (HAL_DMA_Init(&hdma_usart5_rx) != HAL_OK)
+    {
+      Error_Handler( );
+    }
 
+    __HAL_LINKDMA(uartHandle,hdmarx,hdma_usart5_rx);
   /* USER CODE END USART4_MspInit 1 */
   }
 }

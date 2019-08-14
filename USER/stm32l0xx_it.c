@@ -243,6 +243,7 @@ void USART4_5_IRQHandler(void)
   ucTmp2 = __HAL_UART_GET_IT_SOURCE(&huart5, UART_IT_IDLE);
   if((ucTmp1 != RESET) && (ucTmp2 != RESET))
   { 
+	ucTmp1 = huart5.Instance->RDR; ///必须读取缓存数据才能清除，否则会导致数据帧开头接收到多个数据
 	__HAL_UART_CLEAR_IDLEFLAG(&huart5);
 	HAL_UART_AbortReceive_IT(&huart5);
 	if(USART_REC_LEN != hdma_usart5_rx.Instance->CNDTR)
@@ -254,6 +255,7 @@ void USART4_5_IRQHandler(void)
 		memset(UART_RX_DATA5.USART_RX_BUF, 0, UART_RX_DATA5.USART_RX_Len);
 		UART_RX_DATA5.USART_RX_Len = 0;
 	}
+	huart5.RxState = HAL_UART_STATE_READY;	
 	__HAL_DMA_SET_COUNTER(&hdma_usart5_rx,USART_REC_LEN);
   }
   /* USER CODE END USART4_5_IRQn 1 */

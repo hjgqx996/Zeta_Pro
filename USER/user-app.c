@@ -17,7 +17,7 @@
 
 #define userappMAJOR_VERSION	0 ///项目整体发生全局变化时，主版本号加 1
 #define userappMINOR_VERSION	0 ///项目在原有基础添加部分功能+1
-#define userappDEBUG_VERSION	4 ///局部修改或 bug 修正时+1
+#define userappDEBUG_VERSION	6 ///局部修改或 bug 修正时+1
 
 volatile uint16_t	UpSeqCounter = 1; 
 

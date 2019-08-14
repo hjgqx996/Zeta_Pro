@@ -140,7 +140,6 @@ uint8_t Rs485GetData(uint8_t *data, uint8_t debuglevel)
 	{			
 		DEBUG(debuglevel,"%02X ",data[i]);	
 	}
-	HAL_UART_AbortReceive_IT(&huart5); ///发送前清除DMA，防止接收数据超时
 	DEBUG(debuglevel,"\r\n");
 	return length;
 }
@@ -156,7 +155,7 @@ uint8_t Rs485GetData(uint8_t *data, uint8_t debuglevel)
  */
 uint8_t Rs485Cmd(uint8_t *sendData, uint8_t len, uint8_t debuglevel, uint32_t time_out)
 {	
-	uint8_t temp[20] = {0};
+	uint8_t temp[128] = {0};
 
 	RS485_TO_TX();		 
 	Rs485s.Crc16(sendData,len);
@@ -168,12 +167,10 @@ uint8_t Rs485Cmd(uint8_t *sendData, uint8_t len, uint8_t debuglevel, uint32_t ti
 	DEBUG(debuglevel,"\r\n");
 	HAL_UART_Transmit(&huart5,sendData,len + 2,0xffff);		
 
-	RS485_TO_RX(  );
-	huart5.RxState = HAL_UART_STATE_READY;
-    len = huart5.Instance->RDR; ///必须读取缓存数据才能清除，否则会导致数据帧开头接收到多个数据
-	HAL_UART_Receive_DMA(&huart5, UART_RX_DATA5.USART_RX_BUF,USART_REC_LEN);  
-	
-	memset(Rs485s.Revbuff, 0, 20);
+	len = huart5.Instance->RDR;
+	HAL_UART_Receive_DMA(&huart5, UART_RX_DATA5.USART_RX_BUF,USART_REC_LEN); 
+	RS485_TO_RX(  );		
+	memset(Rs485s.Revbuff, 0, 128);
 	
 	if(sendData[0] == 0xFD)
 	{

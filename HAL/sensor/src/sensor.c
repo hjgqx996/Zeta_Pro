@@ -63,18 +63,18 @@ uint8_t ExpendBoxbuff[9] = {0xFE,0x03,0x04,0x00,0x00,0x00,0x00,0x00,0x00};
  */
 void SensorsInit(void)
 {
-	Sensors.Handle		 			= SensorHandle;
-	Sensors.CheckHandle			= SensorCheckHandle;
-	Sensors.DataProces			=	SensorDataProces;
+	Sensors.Handle		 	= SensorHandle;
+	Sensors.CheckHandle		= SensorCheckHandle;
+	Sensors.DataProces		= SensorDataProces;
 	Sensors.QueryPinStaus 	= SensorQueryPinStaus;
-	Sensors.QueryType 			= SensorQueryType;
-	Sensors.GetData 				= SensorGetData;
-	Sensors.GetRs485Type 		= GetRs485Type;
+	Sensors.QueryType 		= SensorQueryType;
+	Sensors.GetData 		= SensorGetData;
+	Sensors.GetRs485Type 	= GetRs485Type;
 	Sensors.ExpendBoxLive 	= SensorExpendBoxLive;
 	Sensors.ExpenSigle      = SensorExpenSigle;
-	Sensors.MaBoxData 			= SensorMaBoxData;
-	Sensors.ExpBoxAddr 			= SensorExpBoxAddr;
-	Sensors.ExpenData 			= SensorExpenData;
+	Sensors.MaBoxData 		= SensorMaBoxData;
+	Sensors.ExpBoxAddr 		= SensorExpBoxAddr;
+	Sensors.ExpenData 		= SensorExpenData;
 
 	Rs485Init(  );
 	Rs485s.PowerOn(  );
@@ -424,9 +424,9 @@ static HAL_StatusTypeDef SensorQueryPinStaus(void)
 }
 
 /*
- *	SensorQueryType:		广播查询主板485类型
- *	参数：			  			Rs485接口
- *	返回值：						Rs485类型：RS485_NONE/RS485_EXPAND_BOX/RS485_SINGLE
+ *	SensorQueryType:	广播查询主板485类型
+ *	参数：			  	Rs485接口
+ *	返回值：			Rs485类型：RS485_NONE/RS485_EXPAND_BOX/RS485_SINGLE
  */
 static Rstype_t SensorQueryType(int PortId)
 {
@@ -442,8 +442,7 @@ static Rstype_t SensorQueryType(int PortId)
 	memcpy1(repbuff,Rs485s.Revbuff,len);
 	Rs485s.Print(repbuff, len, NODEBUG);
 			
-  ///判断广播回复地址：扩展盒地址应答
-	
+	///判断广播回复地址：扩展盒地址应答	
 	if(len == CheckRs485s[EXPENDBOX].RevDataLen && repbuff[3] == 0) //扩展盒的地址 为0
 	{
 		//返回的数据长度大于0，认为是外部盒子
@@ -640,22 +639,25 @@ static HAL_StatusTypeDef SensorExpBoxAddr(int index)
 	for(ExpId = 0 ; ExpId < 5 ; ExpId ++)
 	{
 		ExpIndex++;
-
-		SaveRs485s[index].MainBox.ExpendBox[ExpId].ExpenCheck = false;
-		
+		SaveRs485s[index].MainBox.ExpendBox[ExpId].ExpenCheck = false;		
 		if( SaveRs485s[index].MainBox.ExpendBox[ExpId].ExpendBoxLive )
 		{			
 			DEBUG_APP(3,"main port=%02x ExpId = %d",MainIndex, ExpIndex);
-
 			if(CheckRs485s[EXPENDBOX].RevDataLen != OpenExpenBox(ExpId))
 			{
-				HAL_Delay(100);
-				DEBUG_ERROR(2,"main00 port = %02x, exbox port=%d sensor open faile",MainIndex,ExpIndex);				
-				
+				HAL_Delay(300);
+				DEBUG_ERROR(2,"main port = %02x, exbox port=%d sensor open fail",MainIndex,ExpIndex);								
 				if(CheckRs485s[EXPENDBOX].RevDataLen != OpenExpenBox(ExpId))
 				{
-					DEBUG_ERROR(2,"main port = %02x, exbox port=%d sensor open faile",MainIndex,ExpIndex);				
-					continue;
+					HAL_Delay(300);
+					DEBUG_ERROR(2,"main port = %02x, exbox port=%d sensor open fail",MainIndex,ExpIndex);	
+					if(CheckRs485s[EXPENDBOX].RevDataLen != OpenExpenBox(ExpId))
+					{
+						DEBUG_ERROR(2,"main port = %02x, exbox port=%d sensor open fail",MainIndex,ExpIndex);
+						Sensors.Counter ++;
+						SaveRs485s[index].MainBox.ExpendBox[ExpId].SensorToLen = 0;	
+						continue;
+					}
 				}
 			}
 			else
@@ -666,7 +668,7 @@ static HAL_StatusTypeDef SensorExpBoxAddr(int index)
 		    len = Rs485s.Cmd(ExpendBoxbuff,7, NODEBUG,1000);   // 地址广播：get expend return data 	
 			memcpy1(repbuff,Rs485s.Revbuff,len);		
 			
-			if(len >5) ///广播应答
+			if(len>5) ///广播应答
 			{											
 				DEBUG_APP(3,"single ok and has rpy addr = 0x%02x",repbuff[3]);		
 				int i = 0;
@@ -898,21 +900,19 @@ static HAL_StatusTypeDef SensorExpenSigle(uint8_t index, uint8_t Exid)
 	{					
 		ex_box ++;
 		/***********************打开扩展盒接口状态***********************************/
-		if(CheckRs485s[EXPENDBOX].RevDataLen != OpenExpenBox(Exid))
-		{			
-			DEBUG_ERROR(2,"111main port = %d, exbox port=%d RevDataLen = %d sensor open faile",main_box,ex_box,CheckRs485s[EXPENDBOX].RevDataLen);	
-			HAL_Delay(200);		
+//		if(CheckRs485s[EXPENDBOX].RevDataLen != OpenExpenBox(Exid))
+//		{			
+//			DEBUG_ERROR(2,"111main port = %d, exbox port=%d RevDataLen = %d sensor open fail",main_box,ex_box,CheckRs485s[EXPENDBOX].RevDataLen);	
+//			HAL_Delay(500);		
 
-			if(CheckRs485s[EXPENDBOX].RevDataLen != OpenExpenBox(Exid))
-			{
-				
-				DEBUG_ERROR(2,"222main port = %d, exbox port=%d sensor open faile",main_box,ex_box);	
-				
-				Sensors.Counter ++;
-				SaveRs485s[index].MainBox.ExpendBox[Exid].SensorToLen = 0;					
-				return HAL_ERROR;
-			}
-		}
+//			if(CheckRs485s[EXPENDBOX].RevDataLen != OpenExpenBox(Exid))
+//			{			
+//				DEBUG_ERROR(2,"222main port = %d, exbox port=%d sensor open fail",main_box,ex_box);					
+//				Sensors.Counter ++;
+//				SaveRs485s[index].MainBox.ExpendBox[Exid].SensorToLen = 0;					
+//				return HAL_ERROR;
+//			}
+//		}
 
 		len = Rs485s.Cmd(CheckRs485s[SaveRs485s[index].MainBox.ExpendBox[Exid].CheckIndex].SendBuff,CheckRs485s[SaveRs485s[index].MainBox.ExpendBox[Exid].CheckIndex].SendDataLen,\
 						 NODEBUG,CheckRs485s[SaveRs485s[index].MainBox.ExpendBox[Exid].CheckIndex].TimeOut);      
@@ -993,9 +993,9 @@ static HAL_StatusTypeDef SensorExpenSigle(uint8_t index, uint8_t Exid)
 }
 
 /*
- *	SensorExpenData:		读取扩展盒Rs485传感器数据
- *	参数：			  			主板485ID
- *	返回值：						查询状态：成功/失败
+ *	SensorExpenData:读取扩展盒Rs485传感器数据
+ *	参数：			主板485ID
+ *	返回值：		查询状态：成功/失败
  */
 static HAL_StatusTypeDef SensorExpenData(uint8_t index)
 {
@@ -1015,14 +1015,19 @@ static HAL_StatusTypeDef SensorExpenData(uint8_t index)
 			/***********************打开扩展盒接口状态***********************************/
 			if(CheckRs485s[EXPENDBOX].RevDataLen != OpenExpenBox(Exid))
 			{				
-				DEBUG_ERROR(2,"111main port = %d, exbox port=%d RevDataLen = %d sensor open faile",main_box,ex_box,CheckRs485s[EXPENDBOX].RevDataLen);	
-				HAL_Delay(200);		
+				DEBUG_ERROR(2,"main port = %d, exbox port=%d RevDataLen = %d sensor open fail",main_box,ex_box,CheckRs485s[EXPENDBOX].RevDataLen);	
+				HAL_Delay(300);		
 				if(CheckRs485s[EXPENDBOX].RevDataLen != OpenExpenBox(Exid))
 				{					
-					DEBUG_ERROR(2,"222main port = %d, exbox port=%d sensor open faile",main_box,ex_box);						
-					Sensors.Counter ++;
-					SaveRs485s[index].MainBox.ExpendBox[Exid].SensorToLen = 0;					
-					continue;
+					HAL_Delay(300);
+					DEBUG_ERROR(2,"main port = %d, exbox port=%d sensor open fail",main_box,ex_box);	
+					if(CheckRs485s[EXPENDBOX].RevDataLen != OpenExpenBox(Exid))
+					{	
+						DEBUG_ERROR(2,"main port = %d, exbox port=%d sensor open fail",main_box,ex_box);
+						Sensors.Counter ++;
+						SaveRs485s[index].MainBox.ExpendBox[Exid].SensorToLen = 0;					
+						continue;
+					}						
 				}
 			}
 			len = Rs485s.Cmd(CheckRs485s[SaveRs485s[index].MainBox.ExpendBox[Exid].CheckIndex].SendBuff,CheckRs485s[SaveRs485s[index].MainBox.ExpendBox[Exid].CheckIndex].SendDataLen,\
@@ -1123,7 +1128,7 @@ static uint8_t OpenExpenBox(uint8_t ExpId)
 		temp = ExpId;				
 	}
 	OpenExpendBoxbuff[5] = 0x01 << temp;
-	len = Rs485s.Cmd(OpenExpendBoxbuff,7, NODEBUG, 1500); 
+	len = Rs485s.Cmd(OpenExpendBoxbuff,7, NODEBUG, 800); 
 	return len;
 }
 

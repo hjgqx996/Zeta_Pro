@@ -645,11 +645,11 @@ static HAL_StatusTypeDef SensorExpBoxAddr(int index)
 			DEBUG_APP(3,"main port=%02x ExpId = %d",MainIndex, ExpIndex);
 			if(CheckRs485s[EXPENDBOX].RevDataLen != OpenExpenBox(ExpId))
 			{
-				HAL_Delay(300);
+				HAL_Delay(800);
 				DEBUG_ERROR(2,"main port = %02x, exbox port=%d sensor open fail",MainIndex,ExpIndex);								
 				if(CheckRs485s[EXPENDBOX].RevDataLen != OpenExpenBox(ExpId))
 				{
-					HAL_Delay(300);
+					HAL_Delay(800);
 					DEBUG_ERROR(2,"main port = %02x, exbox port=%d sensor open fail",MainIndex,ExpIndex);	
 					if(CheckRs485s[EXPENDBOX].RevDataLen != OpenExpenBox(ExpId))
 					{
@@ -1016,10 +1016,10 @@ static HAL_StatusTypeDef SensorExpenData(uint8_t index)
 			if(CheckRs485s[EXPENDBOX].RevDataLen != OpenExpenBox(Exid))
 			{				
 				DEBUG_ERROR(2,"main port = %d, exbox port=%d RevDataLen = %d sensor open fail",main_box,ex_box,CheckRs485s[EXPENDBOX].RevDataLen);	
-				HAL_Delay(300);		
+				HAL_Delay(800);		
 				if(CheckRs485s[EXPENDBOX].RevDataLen != OpenExpenBox(Exid))
 				{					
-					HAL_Delay(300);
+					HAL_Delay(800);
 					DEBUG_ERROR(2,"main port = %d, exbox port=%d sensor open fail",main_box,ex_box);	
 					if(CheckRs485s[EXPENDBOX].RevDataLen != OpenExpenBox(Exid))
 					{	
@@ -1128,7 +1128,7 @@ static uint8_t OpenExpenBox(uint8_t ExpId)
 		temp = ExpId;				
 	}
 	OpenExpendBoxbuff[5] = 0x01 << temp;
-	len = Rs485s.Cmd(OpenExpendBoxbuff,7, NODEBUG, 800); 
+	len = Rs485s.Cmd(OpenExpendBoxbuff,7, NODEBUG, 100); 
 	return len;
 }
 

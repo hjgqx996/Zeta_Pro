@@ -167,9 +167,14 @@ uint8_t Rs485Cmd(uint8_t *sendData, uint8_t len, uint8_t debuglevel, uint32_t ti
 	DEBUG(debuglevel,"\r\n");
 	HAL_UART_Transmit(&huart5,sendData,len + 2,0xffff);		
 
+<<<<<<< HEAD
 	len = huart5.Instance->RDR;
 	HAL_UART_Receive_DMA(&huart5, UART_RX_DATA5.USART_RX_BUF,USART_REC_LEN); 
 	RS485_TO_RX(  );		
+=======
+	RS485_TO_RX(  );
+
+>>>>>>> V0.0.4
 	memset(Rs485s.Revbuff, 0, 128);
 	
 	if(sendData[0] == 0xFD)

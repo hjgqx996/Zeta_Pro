@@ -1143,7 +1143,12 @@ static void RS485CmdPackage(char mode)
 	{
 		DEBUG_APP(3,"index = %d,addr = %02X\r\n",index,CheckRs485s[index].Addr);
 		memset(CheckRs485s[index].SendBuff,0,sizeof(CheckRs485s[index].SendBuff));
+<<<<<<< HEAD
 		CheckRs485s[index].SendBuff[0] = CheckRs485s[index].Addr;		
+=======
+		CheckRs485s[index].SendBuff[0] = CheckRs485s[index].Addr;
+		
+>>>>>>> V0.0.4
 		if(15 == index)
 		{
 			CheckRs485s[index].SendBuff[1] = NBI_RS485_MOISTURE_LEAF;

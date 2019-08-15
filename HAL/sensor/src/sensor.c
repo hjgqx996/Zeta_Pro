@@ -507,7 +507,6 @@ static Rstype_t SensorQueryType(int PortId)
 		}
 		else
 		CheckRs485Index = ARRAY(CheckRs485s);
-		DEBUG_WARNING(2, "CheckRs485Index = %d",CheckRs485Index);
 		for(int i = 14 ; i <  CheckRs485Index; i ++) ///只查询叶面传感器 
 		{			
 			len = Rs485s.Cmd(CheckRs485s[i].SendBuff, CheckRs485s[i].SendDataLen, NODEBUG, CheckRs485s[i].TimeOut);
@@ -1207,7 +1206,7 @@ static void RS485CmdPackage(char mode)
 		memset(CheckRs485s[index].SendBuff,0,sizeof(CheckRs485s[index].SendBuff));
 		CheckRs485s[index].SendBuff[0] = CheckRs485s[index].Addr;
 		
-		if(13 == index)
+		if(15 == index)
 		{
 			CheckRs485s[index].SendBuff[1] = NBI_RS485_MOISTURE_LEAF;
 		}

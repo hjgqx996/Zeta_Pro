@@ -38,7 +38,7 @@ typedef struct u_rs485
 	/*
 	*接收Rs485传感器数据缓存区
 	*/
-	uint8_t 	Revbuff[20];
+	uint8_t 	Revbuff[128];
 	
 	void 			(*PinInit)(void);
 	void 			(*OpenPin)(int index);
